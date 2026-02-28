@@ -9,12 +9,20 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, Windows, TST]
+    runs-on: [self-hosted, Windows]
     environment: TST
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Azure Login
         uses: azure/login@v2
@@ -22,15 +30,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: dotnet restore
-        run: dotnet restore
-        working-directory: SignalRApp
-
-      - name: dotnet build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet restore --locked-mode
         working-directory: SignalRApp
 
       - name: dotnet publish
-        run: dotnet publish --configuration Release --output ./publish
+        run: dotnet publish --configuration Release --output ./publish --no-restore
         working-directory: SignalRApp
 
       - name: Publish Artifact
@@ -38,4 +42,4 @@ jobs:
         with:
           name: signalr_tst
           path: SignalRApp/publish
-          retention-days: 30
+          retention-days: 7
