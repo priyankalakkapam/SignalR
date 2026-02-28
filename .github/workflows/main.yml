@@ -10,7 +10,6 @@ on:
 jobs:
   build:
     runs-on: [self-hosted, Windows]
-    environment: TST
 
     steps:
       - name: Checkout Code
@@ -20,17 +19,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: dotnet restore
-        run: dotnet restore --locked-mode
+        run: dotnet restore
         working-directory: SignalRApp
 
       - name: dotnet publish
