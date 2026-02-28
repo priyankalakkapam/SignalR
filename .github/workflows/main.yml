@@ -1,41 +1,41 @@
-name: .NET SignalR CI/CD
+name: fortexx_signalr - TST Build
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows, TST]
     environment: TST
 
     steps:
-    - name: Checkout Api-l...
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: dotnet restore
-      run: dotnet restore
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: dotnet build
-      run: dotnet build --configuration Release --no-restore
+      - name: dotnet restore
+        run: dotnet restore
+        working-directory: SignalR_Hub
 
-    - name: Command Line - Set Version
-      run: echo "Build version set successfully"
+      - name: dotnet build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: SignalR_Hub
 
-    - name: Archive /home - Publish
-      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish
+      - name: dotnet publish
+        run: dotnet publish --configuration Release --output ./publish
+        working-directory: SignalR_Hub
 
-    - name: Publish Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: signalr-drop
-        path: ${{ github.workspace }}/publish
-        overwrite: true
-
-    - name: Command Line - Post Build
-      run: echo "Post build steps completed"
-
-    - name: Command Line - Cleanup
-      run: echo "Cleanup completed"
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signalr_tst
+          path: SignalR_Hub/publish
+          retention-days: 30
