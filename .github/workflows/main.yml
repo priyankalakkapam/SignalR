@@ -1,0 +1,36 @@
+name: .NET SignalR CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    environment: TST
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: dotnet restore
+      run: dotnet restore
+
+    - name: dotnet build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: dotnet publish
+      run: dotnet publish --configuration Release --output ./publish
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: signalr-app
+        path: ./publish
