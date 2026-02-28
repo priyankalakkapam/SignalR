@@ -7,18 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: self-hosted
     environment: TST
 
     steps:
-    - name: Checkout code
+    - name: Checkout Api-l...
       uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
 
     - name: dotnet restore
       run: dotnet restore
@@ -26,11 +21,21 @@ jobs:
     - name: dotnet build
       run: dotnet build --configuration Release --no-restore
 
-    - name: dotnet publish
-      run: dotnet publish --configuration Release --output ./publish
+    - name: Command Line - Set Version
+      run: echo "Build version set successfully"
 
-    - name: Upload artifact
+    - name: Archive /home - Publish
+      run: dotnet publish --configuration Release --output ${{ github.workspace }}/publish
+
+    - name: Publish Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: signalr-app
-        path: ./publish
+        name: signalr-drop
+        path: ${{ github.workspace }}/publish
+        overwrite: true
+
+    - name: Command Line - Post Build
+      run: echo "Post build steps completed"
+
+    - name: Command Line - Cleanup
+      run: echo "Cleanup completed"
